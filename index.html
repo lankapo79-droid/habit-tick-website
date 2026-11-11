@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="ms">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Habit Tick</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #f6f7f6;
+        --surface: #ffffff;
+        --surface-2: #eef3f0;
+        --ink: #15211b;
+        --muted: #5d6f65;
+        --line: #e0e7e2;
+        --accent: #0c7a55;
+        --accent-ink: #ffffff;
+        --accent-soft: #e2f2ea;
+        --danger: #b3261e;
+        --danger-soft: #fbeae9;
+        --shadow: 0 1px 2px rgba(21, 33, 27, .05), 0 4px 14px rgba(21, 33, 27, .05);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0f1512;
+          --surface: #171f1a;
+          --surface-2: #1f2a23;
+          --ink: #edf4ef;
+          --muted: #9db1a5;
+          --line: #27332b;
+          --accent: #34c48d;
+          --accent-ink: #0b1511;
+          --accent-soft: #173327;
+          --danger: #f2b8b5;
+          --danger-soft: #3a1d1b;
+          --shadow: none;
+        }
+      }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        font-size: 16px;
+        line-height: 1.45;
+      }
+      button, input { font: inherit; }
+      button { cursor: pointer; }
+
+      .wrap { max-width: 560px; margin: 0 auto; padding: 0 16px 96px; }
+
+      /* ---------- Header ---------- */
+      header.top {
+        position: sticky; top: 0; z-index: 20;
+        background: var(--bg);
+        padding: 14px 0 10px;
+      }
+      .title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+      h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+      .icon-btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 44px; height: 44px; border-radius: 999px;
+        border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+      }
+      .icon-btn:active { background: var(--surface-2); }
+      .icon-btn svg { width: 20px; height: 20px; }
+      .icon-btn.spinning svg { animation: spin 0.8s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      /* ---------- Date nav ---------- */
+      .datenav {
+        margin-top: 12px;
+        display: flex; align-items: stretch; gap: 8px;
+      }
+      .nav-btn {
+        flex: 0 0 48px; min-height: 52px;
+        display: inline-flex; align-items: center; justify-content: center;
+        border: 1px solid var(--line); border-radius: 12px;
+        background: var(--surface); color: var(--ink);
+      }
+      .nav-btn svg { width: 22px; height: 22px; }
+      .nav-btn:disabled { opacity: 0.35; cursor: default; }
+      .nav-btn:not(:disabled):active { background: var(--surface-2); }
+      .date-mid {
+        flex: 1 1 auto; min-width: 0;
+        border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+        padding: 6px 12px 7px;
+        display: flex; flex-direction: column; justify-content: center;
+      }
+      .date-label { font-weight: 700; font-size: 15.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .date-sub { display: flex; align-items: center; gap: 8px; margin-top: 1px; }
+      .date-rel { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+      .today-link {
+        font-size: 12.5px; font-weight: 700; color: var(--accent);
+        background: none; border: none; padding: 4px 2px; min-height: 28px;
+      }
+      .date-input-row { margin-top: 8px; }
+      input[type="date"] {
+        width: 100%; min-height: 48px;
+        border: 1px solid var(--line); border-radius: 12px;
+        background: var(--surface); color: var(--ink);
+        padding: 10px 12px; font-size: 15px; font-weight: 600;
+        color-scheme: light dark;
+      }
+
+      /* ---------- Progress ---------- */
+      .progress-card {
+        margin-top: 14px;
+        background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+        box-shadow: var(--shadow);
+        padding: 16px;
+        display: flex; align-items: center; gap: 16px;
+      }
+      .ring-wrap { position: relative; width: 84px; height: 84px; flex: 0 0 84px; }
+      .ring-wrap svg { width: 84px; height: 84px; transform: rotate(-90deg); display: block; }
+      .ring-bg { stroke: var(--surface-2); }
+      .ring-fg { stroke: var(--accent); transition: stroke-dashoffset .45s ease; }
+      .ring-num {
+        position: absolute; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 800; font-size: 17px; letter-spacing: -0.01em;
+      }
+      .progress-text { min-width: 0; }
+      .progress-big { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; }
+      .progress-msg { color: var(--muted); font-size: 14px; margin-top: 2px; }
+      .bar { height: 8px; border-radius: 999px; background: var(--surface-2); margin-top: 10px; overflow: hidden; }
+      .bar > div { height: 100%; background: var(--accent); border-radius: 999px; transition: width .45s ease; }
+
+      /* ---------- Sections & habits ---------- */
+      section.group { margin-top: 22px; }
+      .group-head {
+        display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+        padding: 0 4px; margin-bottom: 8px;
+      }
+      .group-head h2 { font-size: 15px; font-weight: 800; letter-spacing: 0.01em; margin: 0; }
+      .group-count { font-size: 13px; font-weight: 700; color: var(--muted); }
+      .group-count.done { color: var(--accent); }
+      .habit-list {
+        background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+        box-shadow: var(--shadow); overflow: hidden;
+      }
+      .habit {
+        width: 100%; text-align: left;
+        display: flex; align-items: center; gap: 13px;
+        padding: 13px 14px; min-height: 62px;
+        background: transparent; border: none; color: var(--ink);
+        border-bottom: 1px solid var(--line);
+        -webkit-tap-highlight-color: transparent;
+      }
+      .habit:last-child { border-bottom: none; }
+      .habit:active { background: var(--surface-2); }
+      .box {
+        flex: 0 0 30px; width: 30px; height: 30px; border-radius: 9px;
+        border: 2px solid var(--line);
+        display: inline-flex; align-items: center; justify-content: center;
+        background: var(--surface);
+        transition: background .15s ease, border-color .15s ease;
+      }
+      .box svg { width: 17px; height: 17px; stroke: var(--accent-ink); opacity: 0; transform: scale(.6); transition: opacity .15s ease, transform .15s ease; }
+      .habit.ticked .box { background: var(--accent); border-color: var(--accent); }
+      .habit.ticked .box svg { opacity: 1; transform: scale(1); }
+      .habit.saving .box {
+        background: transparent; border-color: var(--accent);
+        border-top-color: transparent;
+        animation: spin 0.7s linear infinite;
+      }
+      .habit.saving .box svg { display: none; }
+      .habit-main { flex: 1 1 auto; min-width: 0; }
+      .habit-name { font-weight: 600; font-size: 15.5px; line-height: 1.3; }
+      .habit.ticked .habit-name { color: var(--muted); }
+      .habit-meta { font-size: 12.5px; color: var(--muted); margin-top: 1px; font-weight: 500; }
+      .habit-meta b { color: var(--ink); font-weight: 700; }
+      .habit.ticked .habit-meta b { color: var(--accent); }
+      .month-pill {
+        flex: 0 0 auto;
+        font-size: 13px; font-weight: 700;
+        background: var(--surface-2); color: var(--ink);
+        border-radius: 999px; padding: 5px 10px;
+        font-variant-numeric: tabular-nums;
+      }
+      .habit.ticked .month-pill { background: var(--accent-soft); color: var(--accent); }
+
+      /* ---------- States ---------- */
+      .state-box {
+        margin-top: 18px;
+        background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+        padding: 28px 20px; text-align: center;
+      }
+      .spinner {
+        width: 34px; height: 34px; margin: 0 auto 12px;
+        border-radius: 50%; border: 3px solid var(--surface-2); border-top-color: var(--accent);
+        animation: spin 0.8s linear infinite;
+      }
+      .state-box p { margin: 0; color: var(--muted); font-weight: 600; }
+      .state-box.error p { color: var(--ink); }
+      .state-box .err-detail { color: var(--muted); font-size: 13.5px; font-weight: 500; margin-top: 6px; }
+      .retry-btn {
+        margin-top: 16px; min-height: 48px; padding: 10px 22px;
+        border: none; border-radius: 12px;
+        background: var(--accent); color: var(--accent-ink);
+        font-weight: 700; font-size: 15px;
+      }
+      .past-note {
+        margin-top: 12px; font-size: 13px; font-weight: 600; color: var(--muted);
+        background: var(--surface-2); border-radius: 10px; padding: 9px 12px; text-align: center;
+      }
+
+      /* ---------- Toast ---------- */
+      .toast {
+        position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom));
+        transform: translateX(-50%) translateY(16px);
+        max-width: min(92vw, 480px);
+        background: var(--ink); color: var(--bg);
+        font-size: 14px; font-weight: 600;
+        padding: 12px 18px; border-radius: 12px;
+        opacity: 0; pointer-events: none; transition: opacity .25s ease, transform .25s ease;
+        z-index: 50; text-align: center;
+      }
+      .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+      .toast.err { background: var(--danger); color: #fff; }
+      @media (prefers-color-scheme: dark) { .toast.err { color: #1c0f0e; } }
+
+      footer.note { margin-top: 28px; text-align: center; color: var(--muted); font-size: 12.5px; }
+
+      @media (min-width: 640px) {
+        h1 { font-size: 30px; }
+        .wrap { padding: 0 20px 96px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="top">
+        <div class="title-row">
+          <h1>Habit Tick</h1>
+          <button class="icon-btn" id="refreshBtn" type="button" aria-label="Refresh" title="Refresh">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+          </button>
+        </div>
+
+        <div class="datenav">
+          <button class="nav-btn" id="prevBtn" type="button" aria-label="Hari sebelumnya">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+          </button>
+          <div class="date-mid">
+            <div class="date-label" id="dateLabel">—</div>
+            <div class="date-sub">
+              <span class="date-rel" id="dateRel"></span>
+              <button class="today-link" id="todayBtn" type="button" hidden>← Hari ni</button>
+            </div>
+          </div>
+          <button class="nav-btn" id="nextBtn" type="button" aria-label="Hari seterusnya">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+        <div class="date-input-row">
+          <input type="date" id="datePicker" aria-label="Pilih tarikh" />
+        </div>
+      </header>
+
+      <main id="main">
+        <div class="state-box" id="loadingBox">
+          <div class="spinner" role="status" aria-label="Memuatkan"></div>
+          <p>Memuatkan habits…</p>
+        </div>
+
+        <div class="state-box error" id="errorBox" hidden>
+          <p>Tak dapat load habits.</p>
+          <p class="err-detail">Server habit tak boleh dihubungi. Check internet, lepas tu cuba lagi.</p>
+          <button class="retry-btn" id="retryBtn" type="button">Cuba Lagi</button>
+        </div>
+
+        <div id="content" hidden>
+          <div class="past-note" id="pastNote" hidden>Kau tengah tengok tarikh lepas — tick akan disimpan untuk tarikh ni.</div>
+
+          <div class="progress-card">
+            <div class="ring-wrap" aria-hidden="true">
+              <svg viewBox="0 0 84 84">
+                <circle class="ring-bg" cx="42" cy="42" r="36" fill="none" stroke-width="8" />
+                <circle class="ring-fg" id="ringFg" cx="42" cy="42" r="36" fill="none" stroke-width="8" stroke-linecap="round" stroke-dasharray="226.2" stroke-dashoffset="226.2" />
+              </svg>
+              <div class="ring-num" id="ringPct">0%</div>
+            </div>
+            <div class="progress-text">
+              <div class="progress-big"><span id="progTicked">0</span>/<span id="progTotal">33</span> siap</div>
+              <div class="progress-msg" id="progMsg"></div>
+              <div class="bar" aria-hidden="true"><div id="barFg" style="width:0%"></div></div>
+            </div>
+          </div>
+
+          <div id="sections"></div>
+
+          <footer class="note">Tick terus simpan ke Habit Tracker — bulan ni punya kiraan ikut sekali.</footer>
+        </div>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+      var BASE = "https://script.google.com/macros/s/AKfycbwTBMwUsFIrDyxtuFweMzHiJkt-xuDZn5erRrEURKS2-bR5jWkodwZ31ivxd3DBZ9PJ/exec";
+      var TOKEN = "026ade9a7f5737cefad283da899128ca";
+      var RING_C = 226.2; // 2 * pi * 36
+
+      var loadingBox = document.getElementById("loadingBox");
+      var errorBox = document.getElementById("errorBox");
+      var content = document.getElementById("content");
+      var sectionsEl = document.getElementById("sections");
+      var dateLabel = document.getElementById("dateLabel");
+      var dateRel = document.getElementById("dateRel");
+      var datePicker = document.getElementById("datePicker");
+      var prevBtn = document.getElementById("prevBtn");
+      var nextBtn = document.getElementById("nextBtn");
+      var todayBtn = document.getElementById("todayBtn");
+      var refreshBtn = document.getElementById("refreshBtn");
+      var pastNote = document.getElementById("pastNote");
+      var toastEl = document.getElementById("toast");
+
+      var state = null;          // last state payload from the backend
+      var viewDate = todayStr(); // YYYY-MM-DD currently shown
+      var pending = {};          // row -> true while a tick request is in flight
+      var rowEls = {};           // row -> habit button element
+      var loadSeq = 0;           // guards against out-of-order state responses
+      var toastTimer = null;
+
+      /* ---------- date helpers (local time, no UTC shift) ---------- */
+      function pad(n) { return (n < 10 ? "0" : "") + n; }
+      function fmtYMD(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+      function todayStr() { return fmtYMD(new Date()); }
+      function parseYMD(s) {
+        var p = s.split("-");
+        return new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+      }
+      function shiftYMD(s, days) {
+        var d = parseYMD(s);
+        d.setDate(d.getDate() + days);
+        return fmtYMD(d);
+      }
+      function dayDiff(a, b) { // whole days from b to a
+        return Math.round((parseYMD(a) - parseYMD(b)) / 86400000);
+      }
+      var fmtFull = new Intl.DateTimeFormat("ms-MY", { weekday: "long", day: "numeric", month: "short", year: "numeric" });
+
+      /* ---------- toast ---------- */
+      function toast(msg, isErr) {
+        toastEl.textContent = msg;
+        toastEl.className = "toast show" + (isErr ? " err" : "");
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toastEl.className = "toast"; }, 3600);
+      }
+
+      /* ---------- fetching ---------- */
+      function apiUrl(params) {
+        var q = [];
+        for (var k in params) q.push(encodeURIComponent(k) + "=" + encodeURIComponent(params[k]));
+        q.push("token=" + encodeURIComponent(TOKEN));
+        return BASE + "?" + q.join("&");
+      }
+      function fetchJson(url) {
+        var ctrl = ("AbortController" in window) ? new AbortController() : null;
+        var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 25000) : null;
+        return fetch(url, ctrl ? { signal: ctrl.signal } : {})
+          .then(function (r) {
+            if (timer) clearTimeout(timer);
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            return r.json();
+          })
+          .catch(function (e) {
+            if (timer) clearTimeout(timer);
+            throw e;
+          });
+      }
+
+      function load(date) {
+        var seq = ++loadSeq;
+        viewDate = date;
+        syncDateUI();
+        content.hidden = true;
+        errorBox.hidden = true;
+        loadingBox.hidden = false;
+        refreshBtn.classList.add("spinning");
+        fetchJson(apiUrl({ action: "state", date: date }))
+          .then(function (json) {
+            if (seq !== loadSeq) return;
+            if (!json || !json.ok || !json.sections) throw new Error("bad payload");
+            state = json;
+            loadingBox.hidden = true;
+            refreshBtn.classList.remove("spinning");
+            content.hidden = false;
+            render();
+          })
+          .catch(function () {
+            if (seq !== loadSeq) return;
+            loadingBox.hidden = true;
+            refreshBtn.classList.remove("spinning");
+            content.hidden = true;
+            errorBox.hidden = false;
+          });
+      }
+
+      /* ---------- date UI ---------- */
+      function syncDateUI() {
+        var t = todayStr();
+        datePicker.max = t;
+        datePicker.value = viewDate;
+        try { dateLabel.textContent = fmtFull.format(parseYMD(viewDate)); }
+        catch (e) { dateLabel.textContent = viewDate; }
+        var diff = dayDiff(t, viewDate);
+        if (diff === 0) dateRel.textContent = "Hari ini";
+        else if (diff === 1) dateRel.textContent = "Semalam";
+        else dateRel.textContent = diff + " hari lepas";
+        todayBtn.hidden = (viewDate === t);
+        nextBtn.disabled = (viewDate >= t);
+        pastNote.hidden = (viewDate === t);
+      }
+      function goTo(date) {
+        var t = todayStr();
+        if (date > t) { toast("Tak boleh pilih tarikh masa depan.", true); syncDateUI(); return; }
+        if (date === viewDate && state) { syncDateUI(); return; }
+        load(date);
+      }
+      prevBtn.addEventListener("click", function () { goTo(shiftYMD(viewDate, -1)); });
+      nextBtn.addEventListener("click", function () { if (viewDate < todayStr()) goTo(shiftYMD(viewDate, 1)); });
+      todayBtn.addEventListener("click", function () { goTo(todayStr()); });
+      datePicker.addEventListener("change", function () { if (datePicker.value) goTo(datePicker.value); });
+      refreshBtn.addEventListener("click", function () { load(viewDate); });
+      document.getElementById("retryBtn").addEventListener("click", function () { load(viewDate); });
+
+      /* ---------- rendering ---------- */
+      function el(tag, cls, text) {
+        var n = document.createElement(tag);
+        if (cls) n.className = cls;
+        if (text != null) n.textContent = text;
+        return n;
+      }
+
+      function render() {
+        sectionsEl.innerHTML = "";
+        rowEls = {};
+        state.sections.forEach(function (sec) {
+          var wrap = el("section", "group");
+          var head = el("div", "group-head");
+          head.appendChild(el("h2", null, sec.name));
+          var cnt = el("span", "group-count");
+          cnt.id = "gcount-" + cssId(sec.name);
+          head.appendChild(cnt);
+          wrap.appendChild(head);
+
+          var list = el("div", "habit-list");
+          sec.habits.forEach(function (h) { list.appendChild(habitEl(h)); });
+          wrap.appendChild(list);
+          sectionsEl.appendChild(wrap);
+        });
+        updateCounts();
+      }
+      function cssId(name) { return name.replace(/[^a-z0-9]+/gi, "-"); }
+
+      function habitEl(h) {
+        var btn = el("button", "habit" + (h.ticked ? " ticked" : ""));
+        btn.type = "button";
+        btn.setAttribute("aria-pressed", h.ticked ? "true" : "false");
+        btn.setAttribute("aria-label", h.name);
+
+        var box = el("span", "box");
+        box.setAttribute("aria-hidden", "true");
+        box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5L19.5 7"/></svg>';
+        btn.appendChild(box);
+
+        var main = el("span", "habit-main");
+        main.appendChild(el("span", "habit-name", h.name));
+        var meta = el("span", "habit-meta");
+        meta.style.display = "block";
+        meta.appendChild(document.createTextNode("Bulan ini "));
+        var b = el("b", null, "");
+        b.id = "mcount-" + h.row;
+        meta.appendChild(b);
+        main.appendChild(meta);
+        btn.appendChild(main);
+
+        var pill = el("span", "month-pill", "");
+        pill.id = "pill-" + h.row;
+        btn.appendChild(pill);
+
+        btn.addEventListener("click", function () { toggle(h, btn); });
+        rowEls[h.row] = btn;
+        paintHabit(h, btn);
+        return btn;
+      }
+
+      function paintHabit(h, btn) {
+        btn.classList.toggle("ticked", !!h.ticked);
+        btn.setAttribute("aria-pressed", h.ticked ? "true" : "false");
+        var b = document.getElementById("mcount-" + h.row);
+        if (b) b.textContent = h.monthCount + "/" + h.goal;
+        var pill = document.getElementById("pill-" + h.row);
+        if (pill) {
+          var pct = h.goal > 0 ? Math.round((h.monthCount / h.goal) * 100) : 0;
+          pill.textContent = pct + "%";
+        }
+      }
+
+      function totals() {
+        var total = 0, ticked = 0;
+        if (!state) return { total: 0, ticked: 0 };
+        state.sections.forEach(function (sec) {
+          sec.habits.forEach(function (h) { total++; if (h.ticked) ticked++; });
+        });
+        return { total: total, ticked: ticked };
+      }
+
+      function updateCounts() {
+        var t = totals();
+        document.getElementById("progTicked").textContent = t.ticked;
+        document.getElementById("progTotal").textContent = t.total;
+        var pct = t.total > 0 ? Math.round((t.ticked / t.total) * 100) : 0;
+        document.getElementById("ringPct").textContent = pct + "%";
+        document.getElementById("ringFg").style.strokeDashoffset = String(RING_C * (1 - pct / 100));
+        document.getElementById("barFg").style.width = pct + "%";
+        var msg = document.getElementById("progMsg");
+        var isToday = (viewDate === todayStr());
+        if (t.total > 0 && t.ticked === t.total) {
+          msg.textContent = isToday ? "Semua siap! Tahniah, lengkap hari ni." : "Semua siap untuk tarikh ni. Tahniah!";
+        } else {
+          msg.textContent = "Lagi " + (t.total - t.ticked) + " habit untuk lengkap" + (isToday ? " hari ni." : " tarikh ni.");
+        }
+        state.sections.forEach(function (sec) {
+          var done = 0;
+          sec.habits.forEach(function (h) { if (h.ticked) done++; });
+          var c = document.getElementById("gcount-" + cssId(sec.name));
+          if (c) {
+            c.textContent = done + "/" + sec.habits.length;
+            c.classList.toggle("done", done === sec.habits.length && sec.habits.length > 0);
+          }
+        });
+      }
+
+      /* ---------- ticking (optimistic, revert on error) ---------- */
+      function toggle(h, btn) {
+        if (pending[h.row]) return;
+        var newVal = !h.ticked;
+        applyTick(h, newVal);
+        pending[h.row] = true;
+        btn.classList.add("saving");
+
+        fetchJson(apiUrl({ action: "tick", date: viewDate, row: h.row, value: newVal ? 1 : 0 }))
+          .then(function (json) {
+            if (!json || !json.ok) throw new Error("tick failed");
+            // Trust the server's word if it disagrees with our optimistic value.
+            if (!!json.ticked !== h.ticked) applyTick(h, !!json.ticked);
+          })
+          .catch(function () {
+            applyTick(h, !newVal); // revert
+            toast("Tak dapat simpan tick untuk \"" + h.name + "\". Cuba lagi.", true);
+          })
+          .then(function () {
+            delete pending[h.row];
+            btn.classList.remove("saving");
+          });
+      }
+      function applyTick(h, val) {
+        if (h.ticked === val) { paintHabit(h, rowEls[h.row]); updateCounts(); return; }
+        h.ticked = val;
+        h.monthCount = Math.max(0, (h.monthCount || 0) + (val ? 1 : -1));
+        if (rowEls[h.row]) paintHabit(h, rowEls[h.row]);
+        updateCounts();
+      }
+
+      /* ---------- start ---------- */
+      syncDateUI();
+      load(viewDate);
+    </script>
+  </body>
+</html>
